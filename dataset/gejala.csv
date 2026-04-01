@@ -1,0 +1,16 @@
+kode_gejala,nama_gejala,nilai_probabilitas
+G01,Daun Telinga Terlihat Bengkak Merah dan Kebiruan,0.1
+G02,Daun Telinga Hangat atau Panas pada saat Diraba,0.4
+G03,Daun Telinga Terasa Nyeri,0.6
+G04,Hilangnya Pendengaran Secara Bertahap/Mendadak,0.4
+G05,Hilangnya Keseimbangan,0.1
+G06,Telinga Berdengung,0.3
+G07,Mengalami Pusing Berputar Secara Tiba-tiba,0.4
+G08,Telinga Terasa Penuh,0.1
+G09,Demam Tinggi,0.6
+G10,Gatal Pada Telinga,0.2
+G11,Bengkak Pada Telinga,0.1
+G12,Telinga Berair,0.8
+G13,Pendengaran Terganggu,0.5
+G14,Kesulitan Menentukan Sumber Suara,0.5
+G15,Berkata-kata/Mendengar Musik/Menonton TV dengan Volume Lebih Keras,0.4
