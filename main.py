@@ -107,11 +107,12 @@ def identify_penyakit(selected_symptoms, penyakit_dict):
                 'nama': p_data['nama'],
                 'gejala_match': list(intersect),
                 'total_gejala_rule': len(rule_gejala),
-                'match_count': len(intersect)
+                'match_count': len(intersect),
+                'persentase': (len(intersect) / len(rule_gejala)) * 100
             })
             
-    # Mengurutkan memprioritaskan yang jumlah gejala rule-nya terpenuhi paling banyak
-    hasil_identifikasi.sort(key=lambda x: x['match_count'], reverse=True)
+    # Mengurutkan memprioritaskan yang persentasenya terpenuhi paling banyak
+    hasil_identifikasi.sort(key=lambda x: x['persentase'], reverse=True)
     return hasil_identifikasi
 
 
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         for i, g in enumerate(contoh_gejala, 1):
             nama_gejala = gejala_dict[g]['nama']
             nilai_prob = gejala_dict[g]['probabilitas']
-            print(f"{g} : {nama_gejala} ({nilai_prob}) -> P(E|H{i})")
+            print(f"{g} : {nama_gejala} ({nilai_prob:.3f}) -> P(E|H{i})")
         print("-" * 50)
             
         print("\n=== TAHAP 1: IDENTIFIKASI PENYAKIT (RULE BASED) ===")
@@ -142,31 +143,44 @@ if __name__ == "__main__":
         else:
             print("Penyakit yang dipilih tidak ditemukan (tidak sesuai dengan rule apapun).")
             
-        print("\n=== TAHAP 2: PERHITUNGAN TEOREMA BAYES MANUAL ===")
+        print("\n=== TAHAP 2: PERHITUNGAN TEOREMA BAYES ===")
         hasil = calculate_bayes_paper(contoh_gejala, gejala_dict)
         
         if hasil:
             print(f"Langkah 1: Sudah dideskripsikan pada daftar gejala di atas.")
             
             print(f"Langkah 2: Menghitung semesta (Σ)")
-            print(f"Σ = {hasil['sigma']}")
+            print(f"Σ = {hasil['sigma']:.3f}")
             
             print("\nLangkah 3: Menghitung P(Hi)")
             for i, p_h in enumerate(hasil['p_hi'], 1):
-                print(f"P(H{i}) = {p_h}")
+                print(f"P(H{i}) = {p_h:.3f}")
                 
             print(f"\nLangkah 4: Menghitung probabilitas evidence E -- P(E)")
-            print(f"P(E) = {hasil['p_e']}")
+            print(f"P(E) = {hasil['p_e']:.3f}")
             
             print("\nLangkah 5: Menghitung nilai Bayes setiap hipotesis -- P(Hi|E)")
             for i, p_h_e in enumerate(hasil['p_hi_given_e'], 1):
-                print(f"P(H{i}|E) = {p_h_e}")
+                print(f"P(H{i}|E) = {p_h_e:.3f}")
                 
             print(f"\nLangkah 6: Menghitung total nilai Bayes (Σ Bayes)")
-            print(f"Σ Bayes = {hasil['sigma_bayes']}")
+            print(f"Σ Bayes = {hasil['sigma_bayes']:.3f}")
             
             print(f"\nLangkah 7: Menghitung persentase")
-            print(f"Persentase Bayes untuk sekumpulan gejala tersebut = {hasil['persentase']}%")
+            print(f"Persentase Bayes untuk sekumpulan gejala tersebut = {hasil['persentase']:.3f}%")
+            
+        print("\n=== RINGKASAN DAN KESIMPULAN ===")
+        if penyakit_cocok:
+            print("Ringkasan Persentase Setiap Penyakit:")
+            for p in penyakit_cocok:
+                print(f"- {p['nama']} ({p['kode']}): {p['persentase']:.1f}%")
+            
+            top_penyakit = penyakit_cocok[0]
+            print("\nKesimpulan:")
+            print(f"Dari hasil observasi, kemungkinan terbesar pasien menderita {top_penyakit['nama']} ({top_penyakit['kode']}).")
+            print(f"Tingkat kecocokan gejala mencapai {top_penyakit['persentase']:.3f}% ({top_penyakit['match_count']} dari {top_penyakit['total_gejala_rule']} gejala rule terpenuhi).")
+        else:
+            print("Kesimpulan:\nTidak ada penyakit yang dapat teridentifikasi berdasarkan gejala yang dipilih.")
         
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
