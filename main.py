@@ -1,5 +1,10 @@
 import csv
 import os
+import sys
+import io
+
+# Set stdout encoding to UTF-8 to handle special characters
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # =============================================================================
 # LOAD DATA
@@ -31,7 +36,7 @@ def load_data(dataset_dir="dataset"):
 
 
 # =============================================================================
-# TEOREMA BAYES — PER PENYAKIT
+# TEOREMA BAYES - PER PENYAKIT
 #   - Bayes dihitung untuk setiap penyakit secara terpisah,
 #     menggunakan gejala pasien yang COCOK dengan rule penyakit tersebut.
 #   - Menghasilkan skor kepercayaan (confidence) per penyakit yang
@@ -50,15 +55,15 @@ def hitung_bayes_per_penyakit(gejala_cocok: list, gejala_dict: dict) -> dict | N
     if not gejala_cocok:
         return None
 
-    # Langkah 1: Ambil P(E|Hi) — nilai probabilitas setiap gejala yang cocok
+    # Langkah 1: Ambil P(E|Hi) - nilai probabilitas setiap gejala yang cocok
     p_e_given_hi = {g: gejala_dict[g]['probabilitas'] for g in gejala_cocok}
 
-    # Langkah 2: Hitung semesta Σ
+    # Langkah 2: Hitung semesta Sigma
     sigma = sum(p_e_given_hi.values())
     if sigma == 0:
         return None
 
-    # Langkah 3: Hitung P(Hi) — prior, tanpa memandang evidence apapun
+    # Langkah 3: Hitung P(Hi) - prior, tanpa memandang evidence apapun
     p_hi = {g: val / sigma for g, val in p_e_given_hi.items()}
 
     # Langkah 4: Hitung probabilitas evidence P(E)
@@ -98,8 +103,8 @@ def hitung_bayes_per_penyakit(gejala_cocok: list, gejala_dict: dict) -> dict | N
 def diagnosa(gejala_pasien: list, gejala_dict: dict, penyakit_dict: dict) -> list:
     """
     Mengidentifikasi penyakit dari gejala pasien menggunakan:
-      1. Rule-based matching (IF-THEN) — mana rule yang terpicu
-      2. Teorema Bayes per penyakit   — skor kepercayaan tiap kandidat
+      1. Rule-based matching (IF-THEN) - mana rule yang terpicu
+      2. Teorema Bayes per penyakit   - skor kepercayaan tiap kandidat
     Mengembalikan list hasil, diurutkan dari skor tertinggi.
     """
     selected = set(gejala_pasien)
@@ -150,52 +155,52 @@ def cetak_detail_bayes(hasil_penyakit: dict, gejala_dict: dict):
     bayes  = p['bayes']
     nama_p = f"{p['nama']} ({p['kode']})"
 
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     print(f"  Perhitungan Bayes untuk: {nama_p}")
-    print(f"{'─'*60}")
+    print(f"{'-'*60}")
 
     # Langkah 1
-    print(f"\n  Langkah 1 — Gejala cocok & nilai P(E|Hi):")
+    print(f"\n  Langkah 1 - Gejala cocok & nilai P(E|Hi):")
     for i, g in enumerate(p['gejala_cocok'], 1):
         nama_g = gejala_dict[g]['nama']
         val    = bayes['p_e_given_hi'][g]
         print(f"    H{i} ({g}) : {nama_g[:45]:<45} = {val:.4f}")
 
     # Langkah 2
-    print(f"\n  Langkah 2 — Semesta (Σ P(E|Hi))")
-    print(f"    Σ = {' + '.join(f'{v:.4f}' for v in bayes['p_e_given_hi'].values())}")
-    print(f"    Σ = {bayes['sigma']:.4f}")
+    print(f"\n  Langkah 2 - Semesta (Sigma P(E|Hi))")
+    print(f"    Sigma = {' + '.join(f'{v:.4f}' for v in bayes['p_e_given_hi'].values())}")
+    print(f"    Sigma = {bayes['sigma']:.4f}")
 
     # Langkah 3
-    print(f"\n  Langkah 3 — P(Hi) = P(E|Hi) / Σ")
+    print(f"\n  Langkah 3 - P(Hi) = P(E|Hi) / Sigma")
     for i, g in enumerate(p['gejala_cocok'], 1):
         print(f"    P(H{i}) = {bayes['p_e_given_hi'][g]:.4f} / {bayes['sigma']:.4f} = {bayes['p_hi'][g]:.6f}")
 
     # Langkah 4
-    print(f"\n  Langkah 4 — P(E) = Σ P(Hi) × P(E|Hi)")
-    terms = [f"({bayes['p_hi'][g]:.6f} × {bayes['p_e_given_hi'][g]:.4f})"
+    print(f"\n  Langkah 4 - P(E) = Sigma P(Hi) * P(E|Hi)")
+    terms = [f"({bayes['p_hi'][g]:.6f} * {bayes['p_e_given_hi'][g]:.4f})"
              for g in p['gejala_cocok']]
     print(f"    P(E) = {' + '.join(terms)}")
     print(f"    P(E) = {bayes['p_e']:.6f}")
 
     # Langkah 5
-    print(f"\n  Langkah 5 — P(Hi|E) = P(E|Hi) × P(Hi) / P(E)")
+    print(f"\n  Langkah 5 - P(Hi|E) = P(E|Hi) * P(Hi) / P(E)")
     for i, g in enumerate(p['gejala_cocok'], 1):
         v = bayes['p_hi_given_e'][g]
-        print(f"    P(H{i}|E) = ({bayes['p_e_given_hi'][g]:.4f} × {bayes['p_hi'][g]:.6f}) / {bayes['p_e']:.6f} = {v:.6f}")
+        print(f"    P(H{i}|E) = ({bayes['p_e_given_hi'][g]:.4f} * {bayes['p_hi'][g]:.6f}) / {bayes['p_e']:.6f} = {v:.6f}")
 
     # Langkah 6
-    print(f"\n  Langkah 6 — Σ Bayes = {bayes['sigma_bayes']:.6f}")
+    print(f"\n  Langkah 6 - Sigma Bayes = {bayes['sigma_bayes']:.6f}")
 
     # Langkah 7
-    print(f"  Langkah 7 — Persentase = {bayes['sigma_bayes']:.6f} × 100% = {bayes['persentase']:.4f}%")
+    print(f"  Langkah 7 - Persentase = {bayes['sigma_bayes']:.6f} * 100% = {bayes['persentase']:.4f}%")
 
     # Info kelengkapan rule
     print(f"\n  Kelengkapan rule : {p['jumlah_cocok']}/{p['total_rule']} gejala terpenuhi ({p['rasio_rule']:.1f}%)")
     if p['gejala_kurang']:
         kurang_str = ', '.join(f"{g} ({gejala_dict[g]['nama'][:25]})" for g in p['gejala_kurang'])
         print(f"  Gejala belum ada : {kurang_str}")
-    print(f"\n  ► Skor Akhir = Bayes% × Rasio Rule = {bayes['persentase']:.4f}% × {p['rasio_rule']/100:.4f} = {p['skor_akhir']:.4f}")
+    print(f"\n  > Skor Akhir = Bayes% * Rasio Rule = {bayes['persentase']:.4f}% * {p['rasio_rule']/100:.4f} = {p['skor_akhir']:.4f}")
 
 
 def jalankan_diagnosa(gejala_pasien: list, gejala_dict: dict, penyakit_dict: dict):
@@ -207,7 +212,7 @@ def jalankan_diagnosa(gejala_pasien: list, gejala_dict: dict, penyakit_dict: dic
     # Tampilkan gejala input pasien
     print(f"\nGejala yang dilaporkan pasien ({len(gejala_pasien)} gejala):")
     for g in gejala_pasien:
-        print(f"  [{g}] {gejala_dict[g]['nama']} — P = {gejala_dict[g]['probabilitas']:.4f}")
+        print(f"  [{g}] {gejala_dict[g]['nama']} - P = {gejala_dict[g]['probabilitas']:.4f}")
 
     print(f"\n{SEP}")
     print(" HASIL PERHITUNGAN TEOREMA BAYES PER PENYAKIT")
